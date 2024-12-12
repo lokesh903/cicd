@@ -31,10 +31,19 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: deploy node app
+    - name: Setup SSH Key
       run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: SSH and deploy node app
+      run: |
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'EOF'
           cd /var/www/html/cicd
           git pull origin main
           npm install --production
           pm2 restart cicd-test
+        EOF
         
