@@ -36,14 +36,17 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
-        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+        # Adding your server's host to known_hosts
+        echo "Adding SSH host to known_hosts"
+        ssh-keyscan -H "18.219.222.44" >> ~/.ssh/known_hosts  # Your server's IP
 
     - name: SSH and deploy node app
       run: |
-        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'EOF'
+        SSH_HOST="18.219.222.44"  # Your server's IP address
+        SSH_USERNAME="ubuntu"  # Your SSH username
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST << 'EOF'
           cd /var/www/html/cicd
           git pull origin main
           npm install --production
           pm2 restart cicd-test
         EOF
-        
